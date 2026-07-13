@@ -47,8 +47,22 @@
     overflow-x:hidden;
   }
   .topbar{
-    display:flex;align-items:center;justify-content:space-between;
-    margin-bottom:16px;
+    position:sticky;
+    top:0;
+    z-index:100;
+
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+
+    margin:0 -14px 20px;
+    padding:14px 14px 12px;
+
+    background:rgba(12,12,14,0.82);
+    backdrop-filter:blur(18px);
+    -webkit-backdrop-filter:blur(18px);
+
+    border-bottom:1px solid rgba(255,255,255,0.06);
   }
   .month-nav{display:flex;align-items:center;gap:10px;}
   .month-nav button{
@@ -59,9 +73,14 @@
   .month-nav button:active{background:var(--border);}
   .month-title{font-size:19px;font-weight:700;letter-spacing:-0.01em;min-width:120px;text-align:center;}
   .new-month-btn{
-    background:transparent;border:1px solid var(--gold);color:var(--gold);
-    font-size:12.5px;font-weight:600;padding:7px 10px;border-radius:9px;cursor:pointer;
+  background:rgba(242,169,59,0.12);border:1px solid rgba(242,169,59,0.45);color:var(--gold);
+  font-size:12px;font-weight:700;padding:8px 12px;border-radius:12px;cursor:pointer;transition:0.2s;
   }
+
+.new-month-btn:active{
+  transform:scale(0.95);
+  background:rgba(242,169,59,0.25);
+}
 
   .empty-state{
     text-align:center;padding:50px 20px;color:var(--text-dim);
@@ -162,18 +181,9 @@
   </div>
 
   <div>
-    <button class="new-month-btn" id="exportBtn">⬆ Backup</button>
-    <button class="new-month-btn" id="importBtn">⬇ Restore</button>
     <button class="new-month-btn" id="newMonthBtn" style="display:none;">+ Copy to next month</button>
   </div>
 </div>
-
-<input 
-  type="file" 
-  id="importFile" 
-  accept=".json" 
-  style="display:none;"
->
   <div id="content"></div>
 </div>
 
@@ -317,72 +327,6 @@ document.getElementById("newMonthBtn").onclick = async ()=>{
   render();
 };
 
-document.getElementById("exportBtn").onclick = () => {
-
-  const backup = {
-    version: 1,
-    exported: new Date().toISOString(),
-    months: {}
-  };
-
-  allKeys.forEach(async key => {
-    backup.months[key] = await loadMonth(key);
-  });
-
-  setTimeout(() => {
-
-    const blob = new Blob(
-      [JSON.stringify(backup, null, 2)],
-      {type:"application/json"}
-    );
-
-    const url = URL.createObjectURL(blob);
-
-    const a = document.createElement("a");
-    a.href = url;
-    a.download =
-      "finance-backup-" +
-      new Date().toISOString().slice(0,10) +
-      ".json";
-
-    a.click();
-
-    URL.revokeObjectURL(url);
-
-  },500);
-};
-
-
-document.getElementById("importBtn").onclick = () => {
-  document.getElementById("importFile").click();
-};
-
-
-document.getElementById("importFile").onchange = async (e)=>{
-
-  const file = e.target.files[0];
-  if(!file) return;
-
-  const text = await file.text();
-  const backup = JSON.parse(text);
-
-
-  if(!backup.months){
-    alert("Invalid backup file");
-    return;
-  }
-
-
-  for(const key in backup.months){
-    await saveMonth(key, backup.months[key]);
-  }
-
-
-  alert("Backup restored successfully");
-
-  location.reload();
-};
-
 function startBlank(){
   data = {categories:[]};
   saveMonth(currentKey, data);
@@ -464,6 +408,82 @@ function render(){
     }
   };
   content.appendChild(addCat);
+
+  const backupArea = document.createElement("div");
+  backupArea.style.display = "flex";
+  backupArea.style.gap = "8px";
+  backupArea.style.marginTop = "12px";
+
+  backupArea.innerHTML = `
+    <button class="add-cat" id="exportBtn">⬆ Backup</button>
+    <button class="add-cat" id="importBtn">⬇ Restore</button>
+    <input type="file" id="importFile" accept=".json" style="display:none;">
+  `;
+
+  content.appendChild(backupArea);
+
+  document.getElementById("exportBtn").onclick = () => {
+
+    const backup = {
+      version: 1,
+      exported: new Date().toISOString(),
+      months: {}
+    };
+
+    allKeys.forEach(async key => {
+      backup.months[key] = await loadMonth(key);
+    });
+
+    setTimeout(() => {
+
+      const blob = new Blob(
+        [JSON.stringify(backup, null, 2)],
+        {type:"application/json"}
+      );
+
+      const url = URL.createObjectURL(blob);
+
+      const a = document.createElement("a");
+      a.href = url;
+      a.download =
+        "finance-backup-" +
+        new Date().toISOString().slice(0,10) +
+        ".json";
+
+      a.click();
+
+      URL.revokeObjectURL(url);
+
+    },500);
+  };
+
+
+  document.getElementById("importBtn").onclick = () => {
+    document.getElementById("importFile").click();
+  };
+
+
+  document.getElementById("importFile").onchange = async (e)=>{
+
+    const file = e.target.files[0];
+    if(!file) return;
+
+    const text = await file.text();
+    const backup = JSON.parse(text);
+
+    if(!backup.months){
+      alert("Invalid backup file");
+      return;
+    }
+
+    for(const key in backup.months){
+      await saveMonth(key, backup.months[key]);
+    }
+
+    alert("Backup restored successfully");
+
+    location.reload();
+  };
 }
 
 function renderCategory(cat){
