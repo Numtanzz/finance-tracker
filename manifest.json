@@ -1,0 +1,9 @@
+{
+  "name": "Personal Finance Tracker",
+  "short_name": "Finance",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0c0c0e",
+  "theme_color": "#0c0c0e",
+  "orientation": "portrait"
+}
