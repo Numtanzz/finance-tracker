@@ -155,13 +155,25 @@
 
 <div class="wrap" id="app">
   <div class="topbar">
-    <div class="month-nav">
-      <button id="prevBtn">‹</button>
-      <div class="month-title" id="monthTitle">—</div>
-      <button id="nextBtn">›</button>
-    </div>
+  <div class="month-nav">
+    <button id="prevBtn">‹</button>
+    <div class="month-title" id="monthTitle">—</div>
+    <button id="nextBtn">›</button>
+  </div>
+
+  <div>
+    <button class="new-month-btn" id="exportBtn">⬆ Backup</button>
+    <button class="new-month-btn" id="importBtn">⬇ Restore</button>
     <button class="new-month-btn" id="newMonthBtn" style="display:none;">+ Copy to next month</button>
   </div>
+</div>
+
+<input 
+  type="file" 
+  id="importFile" 
+  accept=".json" 
+  style="display:none;"
+>
   <div id="content"></div>
 </div>
 
@@ -303,6 +315,72 @@ document.getElementById("newMonthBtn").onclick = async ()=>{
   currentKey = nextKey;
   data = copy;
   render();
+};
+
+document.getElementById("exportBtn").onclick = () => {
+
+  const backup = {
+    version: 1,
+    exported: new Date().toISOString(),
+    months: {}
+  };
+
+  allKeys.forEach(async key => {
+    backup.months[key] = await loadMonth(key);
+  });
+
+  setTimeout(() => {
+
+    const blob = new Blob(
+      [JSON.stringify(backup, null, 2)],
+      {type:"application/json"}
+    );
+
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download =
+      "finance-backup-" +
+      new Date().toISOString().slice(0,10) +
+      ".json";
+
+    a.click();
+
+    URL.revokeObjectURL(url);
+
+  },500);
+};
+
+
+document.getElementById("importBtn").onclick = () => {
+  document.getElementById("importFile").click();
+};
+
+
+document.getElementById("importFile").onchange = async (e)=>{
+
+  const file = e.target.files[0];
+  if(!file) return;
+
+  const text = await file.text();
+  const backup = JSON.parse(text);
+
+
+  if(!backup.months){
+    alert("Invalid backup file");
+    return;
+  }
+
+
+  for(const key in backup.months){
+    await saveMonth(key, backup.months[key]);
+  }
+
+
+  alert("Backup restored successfully");
+
+  location.reload();
 };
 
 function startBlank(){
