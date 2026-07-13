@@ -160,8 +160,20 @@
     <div class="month-title" id="monthTitle">—</div>
     <button id="nextBtn">›</button>
   </div>
-  <button class="new-month-btn" id="newMonthBtn" style="display:none;">+ Copy to next month</button>
+
+  <div>
+    <button class="new-month-btn" id="exportBtn">⬆ Backup</button>
+    <button class="new-month-btn" id="importBtn">⬇ Restore</button>
+    <button class="new-month-btn" id="newMonthBtn" style="display:none;">+ Copy to next month</button>
+  </div>
 </div>
+
+<input 
+  type="file" 
+  id="importFile" 
+  accept=".json" 
+  style="display:none;"
+>
   <div id="content"></div>
 </div>
 
@@ -452,74 +464,8 @@ function render(){
     }
   };
   content.appendChild(addCat);
-  const backupArea = document.createElement("div");
-  backupArea.style.marginTop = "12px";
-  backupArea.style.display = "flex";
-  backupArea.style.gap = "8px";
-
-  backupArea.innerHTML = `
-    <button class="add-cat" id="exportBtn">⬆ Backup</button>
-    <button class="add-cat" id="importBtn">⬇ Restore</button>
-    <input type="file" id="importFile" accept=".json" style="display:none;">
-`  ;
-
-  content.appendChild(backupArea);
-
-  document.getElementById("exportBtn").onclick = exportBackup;
-
-  document.getElementById("importBtn").onclick = () => {
-    document.getElementById("importFile").click();
-  };
-
-  document.getElementById("importFile").onchange = importBackup;
 }
 
-function exportBackup(){
-
-  const backup = {
-    version:1,
-    exported:new Date().toISOString(),
-    data:data
-  };
-
-  const blob = new Blob(
-    [JSON.stringify(backup,null,2)],
-    {type:"application/json"}
-  );
-
-  const url = URL.createObjectURL(blob);
-
-  const a=document.createElement("a");
-  a.href=url;
-  a.download="finance-backup.json";
-  a.click();
-
-  URL.revokeObjectURL(url);
-}
-
-
-async function importBackup(e){
-
-  const file=e.target.files[0];
-  if(!file) return;
-
-  const text=await file.text();
-  const backup=JSON.parse(text);
-
-  if(!backup.data || !backup.data.categories){
-    alert("Invalid backup file");
-    return;
-  }
-
-  data=backup.data;
-
-  await saveMonth(currentKey,data);
-
-  alert("Restore complete");
-
-  render();
-}
-  
 function renderCategory(cat){
   const wrap = document.createElement("div");
   wrap.className="category";
