@@ -383,25 +383,38 @@ function updateInstallmentNote(note){
     const result = [];
     for(const line of lines){
 
-        // installment pattern:
-        // name + current/total + amount
+        // Find installment only:
+        // 3/10 845.60
+        // NOT 7/10/67
         const m = line.match(
-            /(^.*?)(\d+)\s*\/\s*(\d+)\s+(\d+(?:\.\d+)?)\s*$/
+            /(\d+)\s*\/\s*(\d+)\s+(\d+(?:\.\d+)?)/
         );
         if(!m){
             result.push(line);
             continue;
         }
-        const before = m[1];
-        const current = Number(m[2]);
-        const total = Number(m[3]);
-        const amount = m[4];
+
+        // Ignore dates like 7/10/67
+        const after = line.slice(
+            m.index + m[0].length
+        );
+
+        if(after.match(/^\s*\/\s*\d+/)){
+            result.push(line);
+            continue;
+        }
+        const current = Number(m[1]);
+        const total = Number(m[2]);
+        const amount = m[3];
         if(current >= total){
             continue;
         }
         const next = current + 1;
         result.push(
-            `${before}${next}/${total} ${amount}`
+            line.replace(
+                m[0],
+                `${next}/${total} ${amount}`
+            )
         );
     }
     return result.join("\n");
