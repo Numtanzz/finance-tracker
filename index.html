@@ -736,7 +736,7 @@ function renderItem(cat, it){
   dueInput.max = 31;
   dueInput.className = "item-due";
   dueInput.value = it.dueDay || "";
-  dueInput.placeholder = "Day";
+  dueInput.placeholder = "Due";
   
   dueInput.oninput = () => {
       let value = dueInput.value;
