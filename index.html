@@ -382,23 +382,26 @@ function updateInstallmentNote(note){
     const lines = note.split("\n");
     const result = [];
     for(const line of lines){
-        const m = line.match(/(\d+)\s*\/\s*(\d+)/);
+
+        // installment pattern:
+        // name + current/total + amount
+        const m = line.match(
+            /(^.*?)(\d+)\s*\/\s*(\d+)\s+(\d+(?:\.\d+)?)\s*$/
+        );
         if(!m){
             result.push(line);
             continue;
         }
-        const current = Number(m[1]);
-        const total = Number(m[2]);
-        // finished last month -> remove
+        const before = m[1];
+        const current = Number(m[2]);
+        const total = Number(m[3]);
+        const amount = m[4];
         if(current >= total){
             continue;
         }
         const next = current + 1;
         result.push(
-            line.replace(
-                m[0],
-                `${next}/${total}`
-            )
+            `${before}${next}/${total} ${amount}`
         );
     }
     return result.join("\n");
