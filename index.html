@@ -382,24 +382,26 @@ function updateInstallmentNote(note){
     const lines = note.split("\n");
     const result = [];
     for(const line of lines){
-
-        // Find installment only:
-        // 3/10 845.60
-        // NOT 7/10/67
         const m = line.match(
-            /(\d+)\s*\/\s*(\d+)\s+(\d+(?:\.\d+)?)/
+            /(\d+)\s*\/\s*(\d+)\s+(\d+(?:\.\d+)?)(?:\s|$)/
         );
         if(!m){
             result.push(line);
             continue;
         }
+        const start = m.index;
+        const end = start + m[0].length;
 
-        // Ignore dates like 7/10/67
-        const after = line.slice(
-            m.index + m[0].length
+        // Reject dates like 7/10/67
+        const remaining = line.substring(
+            start,
+            line.length
         );
-
-        if(after.match(/^\s*\/\s*\d+/)){
+        if(
+            remaining.match(
+                /^\d+\s*\/\s*\d+\s*\/\s*\d+/
+            )
+        ){
             result.push(line);
             continue;
         }
