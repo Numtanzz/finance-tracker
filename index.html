@@ -884,35 +884,48 @@ function checkDueNotifications(){
         cat.items.forEach(it=>{
             if(!it.dueDay) return;
             if(it.paid) return;
-
             const due = Number(it.dueDay);
             let diff = due - todayDay;
-            if(diff < 0){
-                diff += 31;
+            let message = "";
+            let notify = false;
+            let historyKey = "";
+
+            // Due today or upcoming
+            if(diff >= 0){
+                if(diff === getReminderDays()){
+                    notify = true;
+                    if(diff === 0){
+                        message = "🔴 Due today";
+                    }
+                    else if(diff === 1){
+                        message = "⚠️ Due tomorrow";
+                    }
+                    else{
+                        message = `💰 Due in ${diff} days`;
+                    }
+                    historyKey =
+                        currentKey + "-" + it.id + "-before-" + diff;
+                }
+            }
+            // Overdue
+            else {
+                const overdueDays = Math.abs(diff);
+                notify = true;
+                message =
+                    `🔴 Overdue by ${overdueDays} day` +
+                    (overdueDays > 1 ? "s" : "");
+                historyKey =
+                    currentKey + "-" + it.id + "-overdue-" + overdueDays;
             }
 
-            if(diff === getReminderDays()){
-                const key =
-                    currentKey + "-" + it.id + "-" + diff;
-
-                // already notified today
-                if(history[key]){
+            if(notify){
+                if(history[historyKey]){
                     return;
-                }
-                
-                let message = "";
-                if(diff === 0){
-                    message = "🔴 Due today";
-                }
-                else if(diff === 1){
-                    message = "⚠️ Due tomorrow";
-                }
-                else{
-                    message = `💰 Due in ${diff} days`;
                 }
 
                 if(Number(it.amount) > 0){
-                     message += `\nAmount: ฿${fmt(it.amount)}`;
+                    message +=
+                    `\nAmount: ฿${fmt(it.amount)}`;
                 }
 
                 showNotification(
@@ -920,10 +933,13 @@ function checkDueNotifications(){
                     message
                 );
 
-                history[key] = new Date().toISOString();
+                history[historyKey] =
+                    new Date().toISOString();
             }
         });
     });
+    saveNotificationHistory(history);
+}
 
     saveNotificationHistory(history);
 }
