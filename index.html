@@ -220,7 +220,8 @@
 const THAI_MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 
 const DEFAULT_SEED_KEY = "2026-07";
-const REMINDER_DAYS = 1;
+const REMINDER_DAYS = 3;
+const NOTIFY_KEY = "finance_notification_history";
 const DEFAULT_SEED = {
   categories: [
     {
@@ -844,10 +845,12 @@ function sortItems(items){
 function checkDueNotifications(){
     const today = new Date();
     const todayDay = today.getDate();
+    const history = getNotificationHistory();
     data.categories.forEach(cat=>{
         cat.items.forEach(it=>{
             if(!it.dueDay) return;
             if(it.paid) return;
+
             const due = Number(it.dueDay);
             let diff = due - todayDay;
             if(diff < 0){
@@ -855,13 +858,40 @@ function checkDueNotifications(){
             }
 
             if(diff === REMINDER_DAYS){
+                const key =
+                    currentKey + "-" + it.id + "-" + diff;
+
+                // already notified today
+                if(history[key]){
+                    return;
+                }
+
                 showNotification(
                     it.name,
                     `Due in ${diff} days`
                 );
+
+                history[key] = new Date().toISOString();
             }
         });
     });
+
+    saveNotificationHistory(history);
+}
+
+function getNotificationHistory(){
+    try{
+        return JSON.parse(localStorage.getItem(NOTIFY_KEY)) || {};
+    }catch(e){
+        return {};
+    }
+}
+
+function saveNotificationHistory(history){
+    localStorage.setItem(
+        NOTIFY_KEY,
+        JSON.stringify(history)
+    );
 }
 
 function showNotification(title,message){
