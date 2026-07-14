@@ -220,6 +220,7 @@
 const THAI_MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 
 const DEFAULT_SEED_KEY = "2026-07";
+const REMINDER_KEY = "finance_reminder_days";
 const REMINDER_DAYS = 3;
 const NOTIFY_KEY = "finance_notification_history";
 const DEFAULT_SEED = {
@@ -286,6 +287,15 @@ function shiftMonth(key, delta){
 function fmt(n){
   n = Number(n)||0;
   return n.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+}
+// ===== Reminder Settings =====
+
+function getReminderDays(){
+  return Number(localStorage.getItem("reminderDays")) || 3;
+}
+
+function setReminderDays(days){
+  localStorage.setItem("reminderDays", days);
 }
 
 async function loadAllKeys(){
@@ -468,6 +478,30 @@ function render(){
     }
   };
   content.appendChild(addCat);
+
+  const reminderBox = document.createElement("div");
+  reminderBox.className="add-cat";
+  reminderBox.innerHTML = `
+  <div style="margin-bottom:8px">
+  🔔 Reminder before due date
+  </div>
+  <select id="reminderSelect" class="item-due" style="width:100%">
+  <option value="0">Same day</option>
+  <option value="1">1 day before</option>
+  <option value="3">3 days before</option>
+  <option value="7">7 days before</option>
+  </select>
+  `;
+
+  content.appendChild(reminderBox);
+  const reminderSelect =
+      reminderBox.querySelector("#reminderSelect");
+  reminderSelect.value = getReminderDays();
+  reminderSelect.onchange = ()=>{
+      setReminderDays(
+          Number(reminderSelect.value)
+      );
+  };
 
   const notifyBtn = document.createElement("button");
   notifyBtn.className="add-cat";
@@ -857,7 +891,7 @@ function checkDueNotifications(){
                 diff += 31;
             }
 
-            if(diff === REMINDER_DAYS){
+            if(diff === getReminderDays()){
                 const key =
                     currentKey + "-" + it.id + "-" + diff;
 
