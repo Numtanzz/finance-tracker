@@ -899,10 +899,25 @@ function checkDueNotifications(){
                 if(history[key]){
                     return;
                 }
+                
+                let message = "";
+                if(diff === 0){
+                    message = "🔴 Due today";
+                }
+                else if(diff === 1){
+                    message = "⚠️ Due tomorrow";
+                }
+                else{
+                    message = `💰 Due in ${diff} days`;
+                }
+
+                if(Number(it.amount) > 0){
+                     message += `\nAmount: ฿${fmt(it.amount)}`;
+                }
 
                 showNotification(
                     it.name,
-                    `Due in ${diff} days`
+                    message
                 );
 
                 history[key] = new Date().toISOString();
