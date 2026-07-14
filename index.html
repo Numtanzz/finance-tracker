@@ -941,9 +941,6 @@ function checkDueNotifications(){
     saveNotificationHistory(history);
 }
 
-    saveNotificationHistory(history);
-}
-
 function getNotificationHistory(){
     try{
         return JSON.parse(localStorage.getItem(NOTIFY_KEY)) || {};
