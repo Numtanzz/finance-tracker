@@ -672,15 +672,35 @@ function renderItem(cat, it){
   nameInput.placeholder = "Item name";
   nameInput.oninput = ()=>{ it.name = nameInput.value; queueSave(); };
   top.appendChild(nameInput);
-  
+ 
   const status = getDueStatus(it.dueDay);
-  if(status){
-    const dueBadge = document.createElement("div");
-    dueBadge.className =
-      "due-badge " + status.cls;
-    dueBadge.textContent =
-      status.text;
-    top.appendChild(dueBadge);
+  // Paid bill
+  if(it.paid){
+      const dueBadge = document.createElement("div");
+      dueBadge.className = "due-badge due-ok";
+      dueBadge.textContent = "✓ Paid";
+      top.appendChild(dueBadge);
+  }
+
+  // Current month
+  else if(isCurrentMonth()){
+      const status = getDueStatus(it.dueDay);
+      if(status){
+          const dueBadge = document.createElement("div");
+          dueBadge.className =
+              "due-badge " + status.cls;
+          dueBadge.textContent =
+              status.text;
+          top.appendChild(dueBadge);
+      }
+  }
+
+  // Past/Future month
+  else if(it.dueDay){
+      const dueBadge = document.createElement("div");
+      dueBadge.className = "due-badge due-ok";
+      dueBadge.textContent = "Due " + it.dueDay;
+      top.appendChild(dueBadge);
   }
 
   const amtWrap = document.createElement("div");
@@ -803,6 +823,11 @@ function updateSummaryLive(){
   rows[0].textContent = "฿"+fmt(total);
   rows[1].textContent = "฿"+fmt(paidTotal);
   rows[2].textContent = "฿"+fmt(remaining);
+}
+
+function isCurrentMonth(){
+    return currentKey ===
+        new Date().toISOString().slice(0,7);
 }
 
 function getDueStatus(day){
