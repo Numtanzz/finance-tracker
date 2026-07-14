@@ -886,14 +886,14 @@ function checkDueNotifications(){
             if(it.paid) return;
             const due = Number(it.dueDay);
             let diff = due - todayDay;
-            let message = "";
             let notify = false;
+            let message = "";
             let historyKey = "";
-
-            // Due today or upcoming
+            // Before due / today
             if(diff >= 0){
                 if(diff === getReminderDays()){
                     notify = true;
+
                     if(diff === 0){
                         message = "🔴 Due today";
                     }
@@ -904,7 +904,7 @@ function checkDueNotifications(){
                         message = `💰 Due in ${diff} days`;
                     }
                     historyKey =
-                        currentKey + "-" + it.id + "-before-" + diff;
+                    currentKey + "-" + it.id + "-due-" + diff;
                 }
             }
             // Overdue
@@ -912,10 +912,10 @@ function checkDueNotifications(){
                 const overdueDays = Math.abs(diff);
                 notify = true;
                 message =
-                    `🔴 Overdue by ${overdueDays} day` +
-                    (overdueDays > 1 ? "s" : "");
+                `🔴 Overdue ${overdueDays} day` +
+                (overdueDays > 1 ? "s" : "");
                 historyKey =
-                    currentKey + "-" + it.id + "-overdue-" + overdueDays;
+                currentKey + "-" + it.id + "-overdue";
             }
 
             if(notify){
@@ -923,21 +923,22 @@ function checkDueNotifications(){
                     return;
                 }
 
-                if(Number(it.amount) > 0){
+                if(Number(it.amount)>0){
                     message +=
                     `\nAmount: ฿${fmt(it.amount)}`;
                 }
 
                 showNotification(
-                    it.name,
+                    it.name || "Payment reminder",
                     message
                 );
 
                 history[historyKey] =
-                    new Date().toISOString();
+                new Date().toISOString();
             }
         });
     });
+
     saveNotificationHistory(history);
 }
 
